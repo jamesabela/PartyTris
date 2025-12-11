@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PartyTris: Christmas Edition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&family=Roboto:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="snow-container"></div>
+
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+
+        <!-- UI Overlays -->
+        <div id="menu-overlay" class="overlay active">
+            <div class="menu-container">
+                <h1 class="title">PartyTris<br><span class="subtitle">Christmas Edition</span></h1>
+
+                <div class="menu-section">
+                    <h3>Select Mode</h3>
+                    <div class="toggle-group" id="mode-select">
+                        <button class="toggle-btn selected" data-value="1p">1 Player vs CPU</button>
+                        <button class="toggle-btn" data-value="2p">2 Player Local</button>
+                    </div>
+                </div>
+
+                <div class="menu-section">
+                    <h3>Select Duration</h3>
+                    <div class="toggle-group" id="time-select">
+                        <button class="toggle-btn" data-value="60">1 Min</button>
+                        <button class="toggle-btn" data-value="120">2 Mins</button>
+                        <button class="toggle-btn selected" data-value="180">3 Mins</button>
+                        <button class="toggle-btn" data-value="300">5 Mins</button>
+                    </div>
+                </div>
+
+                <div class="menu-section">
+                    <h3>Music</h3>
+                    <div class="toggle-group" id="music-select">
+                        <button class="toggle-btn selected" data-value="on">On</button>
+                        <button class="toggle-btn" data-value="off">Off (Silent)</button>
+                    </div>
+                </div>
+
+                <button class="btn start-btn" id="start-game-btn">START GAME</button>
+
+                <div class="controls-hint">
+                    <p>Desktop: WASD (P1) / Arrows (P2)</p>
+                    <p>iPad: Use on-screen controls</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-over-overlay" class="overlay hidden">
+            <div class="menu-container">
+                <h1 class="title">Game Over</h1>
+                <h2 id="winner-text">Player 1 Wins!</h2>
+                <div class="scores">
+                    <p>P1 Score: <span id="p1-score-final">0</span></p>
+                    <p>P2 Score: <span id="p2-score-final">0</span></p>
+                </div>
+                <button class="btn" id="restart-btn">Play Again</button>
+                <button class="btn secondary" id="menu-btn">Back to Menu</button>
+            </div>
+        </div>
+
+        <div id="pause-overlay" class="overlay hidden">
+            <div class="menu-container">
+                <h1>Paused</h1>
+                <button class="btn" id="resume-btn">Resume</button>
+            </div>
+        </div>
+
+        <!-- Touch Controls (generated dynamically or static) -->
+        <div id="touch-controls" class="hidden">
+            <!-- Player 1 Controls (Left Side / Bottom for 1P) -->
+            <div class="controls-group p1-controls">
+                <div class="dpad">
+                    <button class="t-btn up" data-key="w">↻</button>
+                    <button class="t-btn left" data-key="a">←</button>
+                    <button class="t-btn right" data-key="d">→</button>
+                    <button class="t-btn down" data-key="s">↓</button>
+                </div>
+                <button class="t-btn drop" data-key="s_hard">⤓</button>
+            </div>
+
+            <!-- Player 2 Controls (Right Side) -->
+            <div class="controls-group p2-controls">
+                <div class="dpad">
+                    <button class="t-btn up" data-key="ArrowUp">↻</button>
+                    <button class="t-btn left" data-key="ArrowLeft">←</button>
+                    <button class="t-btn right" data-key="ArrowRight">→</button>
+                    <button class="t-btn down" data-key="ArrowDown">↓</button>
+                </div>
+                <button class="t-btn drop" data-key="ArrowDown_hard">⤓</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
