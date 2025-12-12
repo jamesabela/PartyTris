@@ -1,371 +1,113 @@
-:root {
-    --bg-gradient: radial-gradient(circle at center, #b31217 0%, #8b0000 60%, #2a0a0a 100%);
-    --overlay-bg: rgba(80, 0, 0, 0.9);
-    --christmas-red: #ff2a2a;
-    --christmas-dark-red: #8b0000;
-    --christmas-green: #2f5a28;
-    --christmas-gold: #FFD700;
-    --snow-color: #fff;
-    --text-color: #fff;
-}
+<!DOCTYPE html>
+<html lang="en">
 
-* {
-    box-sizing: border-box;
-    touch-action: none;
-    /* Prevent default touch gestures (zooming, scrolling) */
-    user-select: none;
-    /* Prevent text selection */
-    -webkit-user-select: none;
-}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>PartyTris: Christmas Edition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&family=Roboto:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
 
-body {
-    margin: 0;
-    padding: 0;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-    background: var(--bg-gradient);
-    background-size: 200% 200%;
-    animation: gradientBG 20s ease infinite;
-    font-family: 'Roboto', sans-serif;
-    color: var(--text-color);
-}
+<body>
 
-@keyframes gradientBG {
-    0% {
-        background-position: 50% 50%;
-    }
+    <div class="snow-container"></div>
 
-    50% {
-        background-position: 100% 100%;
-    }
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
 
-    100% {
-        background-position: 50% 50%;
-    }
-}
+        <!-- UI Overlays -->
+        <div id="menu-overlay" class="overlay active">
+            <div class="menu-container">
+                <h1 class="title">PartyTris<br><span class="subtitle">Christmas Edition</span></h1>
 
-/* Snow Animation */
-.snow-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    background-image: url('data:image/svg+xml;utf8,<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="10" height="10"><circle cx="5" cy="5" r="2" fill="white" opacity="0.6"/></svg>');
-    background-size: 200px 200px;
-    animation: snow 15s linear infinite;
-    z-index: 1;
-}
+                <div class="menu-section">
+                    <h3>Select Mode</h3>
+                    <div class="toggle-group" id="mode-select">
+                        <button class="toggle-btn selected" data-value="1p">1 Player vs CPU</button>
+                        <button class="toggle-btn" data-value="2p">2 Player Local</button>
+                    </div>
+                </div>
 
-@keyframes snow {
-    0% {
-        background-position: 0 0, 0 0;
-    }
+                <div class="menu-section">
+                    <h3>Select Duration</h3>
+                    <div class="toggle-group" id="time-select">
+                        <button class="toggle-btn" data-value="60">1 Min</button>
+                        <button class="toggle-btn" data-value="120">2 Mins</button>
+                        <button class="toggle-btn selected" data-value="180">3 Mins</button>
+                        <button class="toggle-btn" data-value="300">5 Mins</button>
+                    </div>
+                </div>
 
-    100% {
-        background-position: 50px 500px, 0 0;
-    }
-}
+                <div class="menu-section">
+                    <h3>Music</h3>
+                    <div class="toggle-group" id="music-select">
+                        <button class="toggle-btn selected" data-value="on">On</button>
+                        <button class="toggle-btn" data-value="off">Off (Silent)</button>
+                    </div>
+                </div>
 
-#game-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+                <button class="btn start-btn" id="start-game-btn">START GAME</button>
 
-canvas {
-    box-shadow: 0 0 40px rgba(255, 215, 0, 0.2);
-    /* Gold glow */
-    background: rgba(40, 0, 0, 0.5);
-    max-width: 100%;
-    max-height: 100%;
-    z-index: 10;
-    border: 2px solid rgba(255, 215, 0, 0.1);
-    border-radius: 4px;
-}
+                <div class="controls-hint">
+                    <p>Desktop: WASD (P1) / Arrows (P2)</p>
+                    <p>iPad: Use on-screen controls</p>
+                </div>
+            </div>
+        </div>
 
-/* Overlays */
-.overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--overlay-bg);
-    display: flex;
-    z-index: 100;
-    transition: opacity 0.3s ease;
-    backdrop-filter: blur(5px);
-    overflow-y: auto;
-    /* Enable vertical scroll */
-    -webkit-overflow-scrolling: touch;
-    /* Smooth scroll on iOS */
-    touch-action: pan-y;
-    /* Re-enable vertical scroll gesture */
-}
+        <div id="game-over-overlay" class="overlay hidden">
+            <div class="menu-container">
+                <h1 class="title">Game Over</h1>
+                <h2 id="winner-text">Player 1 Wins!</h2>
+                <div class="scores">
+                    <p>P1 Score: <span id="p1-score-final">0</span></p>
+                    <p>P2 Score: <span id="p2-score-final">0</span></p>
+                </div>
+                <button class="btn" id="restart-btn">Play Again</button>
+                <button class="btn secondary" id="menu-btn">Back to Menu</button>
+            </div>
+        </div>
 
-/* Wrapper to handle centering and scrolling */
-.menu-container {
-    margin: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 30px 20px;
-    width: 100%;
-    /* No max-height, allows growing */
-}
+        <div id="pause-overlay" class="overlay hidden">
+            <div class="menu-container">
+                <h1>Paused</h1>
+                <button class="btn" id="resume-btn">Resume</button>
+            </div>
+        </div>
 
-.overlay.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
+        <!-- Touch Controls (generated dynamically or static) -->
+        <div id="touch-controls" class="hidden">
+            <!-- Player 1 Controls (Left Side / Bottom for 1P) -->
+            <div class="controls-group p1-controls">
+                <div class="dpad">
+                    <button class="t-btn up" data-key="w">↻</button>
+                    <button class="t-btn left" data-key="a">←</button>
+                    <button class="t-btn right" data-key="d">→</button>
+                    <button class="t-btn down" data-key="s">↓</button>
+                </div>
+                <button class="t-btn drop" data-key="s_hard">⤓</button>
+            </div>
 
-.title {
-    font-family: 'Mountains of Christmas', cursive;
-    font-size: 5rem;
-    color: var(--christmas-gold);
-    text-align: center;
-    text-shadow: 4px 4px 0px #8b0000;
-    margin-bottom: 2rem;
-    line-height: 1;
-}
+            <!-- Player 2 Controls (Right Side) -->
+            <div class="controls-group p2-controls">
+                <div class="dpad">
+                    <button class="t-btn up" data-key="ArrowUp">↻</button>
+                    <button class="t-btn left" data-key="ArrowLeft">←</button>
+                    <button class="t-btn right" data-key="ArrowRight">→</button>
+                    <button class="t-btn down" data-key="ArrowDown">↓</button>
+                </div>
+                <button class="t-btn drop" data-key="ArrowDown_hard">⤓</button>
+            </div>
+        </div>
+    </div>
 
-.subtitle {
-    font-size: 0.5em;
-    color: #fff;
-    text-shadow: 2px 2px 0px #8b0000;
-}
+    <script src="script.js"></script>
+</body>
 
-/* Menu Styles */
-.menu-section {
-    margin-bottom: 1.5rem;
-    text-align: center;
-    width: 100%;
-    max-width: 600px;
-}
-
-.menu-section h3 {
-    font-family: 'Mountains of Christmas', cursive;
-    color: #fff;
-    font-size: 2rem;
-    margin-bottom: 0.8rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.toggle-group {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    flex-wrap: wrap;
-}
-
-.toggle-btn {
-    background: rgba(139, 0, 0, 0.6);
-    border: 2px solid rgba(255, 255, 255, 0.5);
-    color: #ffd;
-    padding: 0.6rem 1.2rem;
-    font-size: 1.2rem;
-    border-radius: 25px;
-    cursor: pointer;
-    font-family: 'Roboto', sans-serif;
-    transition: all 0.2s;
-    font-weight: bold;
-}
-
-.toggle-btn.selected {
-    background: #fff;
-    border-color: var(--christmas-gold);
-    color: #ae0001;
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
-    transform: scale(1.1);
-}
-
-.start-btn {
-    margin-top: 1rem;
-    background: linear-gradient(to bottom, #165b33, #0f3f23);
-    border-color: #8fbc8f;
-    font-size: 2.5rem;
-    padding: 1rem 4rem;
-    width: auto;
-}
-
-.controls-hint {
-    margin-top: 2rem;
-    text-align: center;
-    opacity: 0.7;
-    font-size: 0.9rem;
-}
-
-/* Touch Controls */
-#touch-controls {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 50;
-    pointer-events: none;
-    /* We will use padding in JS logic, but here we just layout the containers */
-}
-
-#touch-controls.hidden {
-    display: none;
-}
-
-.controls-group {
-    position: absolute;
-    pointer-events: auto;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    /* Default for 2P: Sides */
-    top: 50%;
-    transform: translateY(-50%);
-    width: 160px;
-}
-
-/* 2 Player Default Positioning */
-.p1-controls {
-    left: 20px;
-}
-
-.p2-controls {
-    right: 20px;
-}
-
-/* 1 Player Mode Positioning (Bottom) */
-.mode-1p .p1-controls {
-    top: auto;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    max-width: 500px;
-    flex-direction: row;
-    justify-content: space-around;
-    align-items: center;
-    padding: 0;
-}
-
-.mode-1p .p2-controls {
-    display: none;
-}
-
-.mode-1p .p1-controls .dpad {
-    order: 1;
-}
-
-.mode-1p .p1-controls .drop {
-    order: 2;
-}
-
-/* 1 Player Mode: Center controls roughly but maybe to the side?
-   Actually, for 1P we might want a standard D-pad left, Action right.
-   But to keep it simple, we'll assume a "split" layout feels arcade-like
-   even for 1P, or we can adjust via JS classes.
-   For now, default is split P1 Left, P2 Right.
-*/
-
-.t-btn {
-    width: 70px;
-    height: 70px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    color: white;
-    font-size: 24px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    transition: background 0.1s;
-}
-
-.t-btn:active {
-    background: rgba(255, 255, 255, 0.4);
-}
-
-.dpad {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    gap: 5px;
-}
-
-.dpad .up {
-    grid-column: 2;
-    grid-row: 1;
-}
-
-.dpad .left {
-    grid-column: 1;
-    grid-row: 2;
-}
-
-.dpad .right {
-    grid-column: 3;
-    grid-row: 2;
-}
-
-.dpad .down {
-    grid-column: 2;
-    grid-row: 2;
-}
-
-/* Large Drop Button */
-.t-btn.drop {
-    width: 90px;
-    height: 90px;
-    background: rgba(212, 36, 38, 0.3);
-    /* Red tint */
-    border-color: rgba(212, 36, 38, 0.5);
-    font-size: 40px;
-}
-
-.t-btn.drop:active {
-    background: rgba(212, 36, 38, 0.6);
-}
-
-/* Removed old mode-1p overrides as they are now handled in the main block above */
-
-/* Media Queries for iPad/Mobile */
-@media (min-width: 768px) {
-    .title {
-        font-size: 6rem;
-    }
-
-    .btn {
-        font-size: 2rem;
-        padding: 1.5rem 3rem;
-    }
-}
-
-@media (max-width: 600px) {
-    .title {
-        font-size: 3rem;
-    }
-
-    .t-btn {
-        width: 50px;
-        height: 50px;
-        font-size: 18px;
-    }
-
-    .t-btn.drop {
-        width: 70px;
-        height: 70px;
-    }
-
-    .controls-group {
-        width: 140px;
-    }
-}
+</html>
