@@ -7,28 +7,52 @@
     --christmas-gold: #FFD700;
     --snow-color: #fff;
     --text-color: #fff;
+    --safe-top: env(safe-area-inset-top);
+    --safe-right: env(safe-area-inset-right);
+    --safe-bottom: env(safe-area-inset-bottom);
+    --safe-left: env(safe-area-inset-left);
 }
 
 * {
     box-sizing: border-box;
-    touch-action: none;
-    /* Prevent default touch gestures (zooming, scrolling) */
+    /* touch-action: none; Removed to allow button clicks */
     user-select: none;
     /* Prevent text selection */
     -webkit-user-select: none;
 }
 
+html,
 body {
     margin: 0;
     padding: 0;
     width: 100vw;
     height: 100vh;
+    min-height: 100vh;
+}
+
+body {
     overflow: hidden;
     background: var(--bg-gradient);
     background-size: 200% 200%;
     animation: gradientBG 20s ease infinite;
     font-family: 'Roboto', sans-serif;
     color: var(--text-color);
+    touch-action: pan-y;
+    /* Allow vertical scroll for overlays/menu */
+    position: relative;
+}
+
+@supports (height: 100dvh) {
+    body {
+        height: 100dvh;
+        min-height: 100dvh;
+    }
+}
+
+/* Ensure game elements define their own touch behavior */
+canvas,
+.t-btn {
+    touch-action: none;
 }
 
 @keyframes gradientBG {
@@ -105,6 +129,10 @@ canvas {
     /* Enable vertical scroll */
     -webkit-overflow-scrolling: touch;
     /* Smooth scroll on iOS */
+    touch-action: pan-y;
+    /* Re-enable vertical scroll gesture */
+    padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+    box-sizing: border-box;
 }
 
 /* Wrapper to handle centering and scrolling */
@@ -116,7 +144,16 @@ canvas {
     justify-content: center;
     padding: 30px 20px;
     width: 100%;
-    /* No max-height, allows growing */
+    /* Limit to viewport height so smaller screens can scroll */
+    max-height: calc(100vh - var(--safe-top) - var(--safe-bottom));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@supports (height: 100dvh) {
+    .menu-container {
+        max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom));
+    }
 }
 
 .overlay.hidden {
@@ -210,6 +247,8 @@ canvas {
     z-index: 50;
     pointer-events: none;
     /* We will use padding in JS logic, but here we just layout the containers */
+    padding: var(--safe-top) var(--safe-right) max(20px, var(--safe-bottom)) var(--safe-left);
+    box-sizing: border-box;
 }
 
 #touch-controls.hidden {
@@ -335,6 +374,34 @@ canvas {
 
 /* Removed old mode-1p overrides as they are now handled in the main block above */
 
+/* Tablet friendly 2P layout: keep controls reachable near bottom corners */
+body.tablet-controls:not(.mode-1p) .controls-group {
+    top: auto;
+    bottom: calc(max(20px, var(--safe-bottom)) + 10px);
+    transform: none;
+    flex-direction: row;
+    width: auto;
+    gap: 15px;
+}
+
+body.tablet-controls:not(.mode-1p) .p1-controls {
+    left: clamp(12px, 4vw, 60px);
+    right: auto;
+}
+
+body.tablet-controls:not(.mode-1p) .p2-controls {
+    right: clamp(12px, 4vw, 60px);
+    left: auto;
+}
+
+body.tablet-controls:not(.mode-1p) .controls-group .dpad {
+    order: 1;
+}
+
+body.tablet-controls:not(.mode-1p) .controls-group .drop {
+    order: 2;
+}
+
 /* Media Queries for iPad/Mobile */
 @media (min-width: 768px) {
     .title {
@@ -365,5 +432,23 @@ canvas {
 
     .controls-group {
         width: 140px;
+    }
+}
+
+@media (pointer: coarse) {
+    .t-btn {
+        width: 80px;
+        height: 80px;
+        font-size: 26px;
+    }
+
+    .t-btn.drop {
+        width: 110px;
+        height: 110px;
+        font-size: 48px;
+    }
+
+    body.mode-1p .controls-group {
+        gap: 30px;
     }
 }
