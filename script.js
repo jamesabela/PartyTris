@@ -37,6 +37,23 @@ const SHAPES = {
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 
+// Touch/Layout detection
+const coarsePointerQuery = window.matchMedia('(pointer: coarse)');
+
+function shouldUseTabletLayout() {
+    return coarsePointerQuery.matches || navigator.maxTouchPoints > 1;
+}
+
+function updateTabletClass() {
+    document.body.classList.toggle('tablet-controls', shouldUseTabletLayout());
+}
+
+if (coarsePointerQuery.addEventListener) {
+    coarsePointerQuery.addEventListener('change', updateTabletClass);
+} else if (coarsePointerQuery.addListener) {
+    coarsePointerQuery.addListener(updateTabletClass);
+}
+
 // Game State
 let gameMode = '1p';
 let gameDuration = 180; // seconds
@@ -292,6 +309,13 @@ function setupInputs() {
                 handleInput(key, false);
             }
         });
+
+        btn.addEventListener('pointercancel', () => {
+            if (keys[key]) {
+                keys[key] = false;
+                handleInput(key, false);
+            }
+        });
     });
 
     // UI Buttons
@@ -341,43 +365,70 @@ function handleInput(key, isPressed) {
 // === Rendering ===
 // Use ResizeObserver for more robust dynamic resizing
 const resizeObserver = new ResizeObserver(() => resize());
-resizeObserver.observe(document.getElementById('game-container'));
+const observedContainer = document.getElementById('game-container');
+if (observedContainer) {
+    resizeObserver.observe(observedContainer);
+}
+
+window.addEventListener('orientationchange', () => {
+    updateTabletClass();
+    setTimeout(() => resize(), 50);
+});
+
+if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => resize());
+}
 
 function resize() {
     const container = document.getElementById('game-container');
     if (!container) return;
 
-    // Measure dynamically
-    const w = container.clientWidth;
-    const h = container.clientHeight;
+    const cssWidth = container.clientWidth;
+    const cssHeight = container.clientHeight;
+    if (!cssWidth || !cssHeight) return;
 
-    canvas.width = w;
-    canvas.height = h;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.style.width = `${cssWidth}px`;
+    canvas.style.height = `${cssHeight}px`;
 
-    // Safety Margins for Controls
-    let availableWidth = w;
-    let availableHeight = h;
+    const displayWidth = Math.max(1, Math.floor(cssWidth * dpr));
+    const displayHeight = Math.max(1, Math.floor(cssHeight * dpr));
+    if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+        canvas.width = displayWidth;
+        canvas.height = displayHeight;
+    }
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.imageSmoothingEnabled = false;
+
+    let availableWidth = cssWidth;
+    let availableHeight = cssHeight;
     let offsetX = 0;
     let offsetY = 0;
 
+    const usingTabletControls = document.body.classList.contains('tablet-controls');
+
     if (gameMode === '1p') {
-        // Reserve bottom ~160px for controls on mobile/small screens
-        const controlHeight = 160;
-        // Don't reserve if it would crush the game view (small landscape)
-        if (h > controlHeight + 200) {
+        const controlHeight = usingTabletControls ? 220 : 160;
+        if (availableHeight > controlHeight + 200) {
             availableHeight -= controlHeight;
         }
     } else {
-        // 2P: Reserve width for side controls
-        const controlWidth = 200;
-        // Only reserve if we have enough width
-        if (w > controlWidth * 2 + 200) {
-            availableWidth -= (controlWidth * 2);
-            offsetX = controlWidth;
+        if (usingTabletControls) {
+            const controlHeight = 200;
+            if (availableHeight > controlHeight + 200) {
+                availableHeight -= controlHeight;
+            }
+        } else {
+            const controlWidth = 200;
+            if (availableWidth > controlWidth * 2 + 200) {
+                availableWidth -= (controlWidth * 2);
+                offsetX = controlWidth;
+            }
         }
     }
 
-    // Boards Total Size
     const boardUnitW = (COLS * 30);
     const totalIdealW = (boardUnitW * 2) + GAP;
     const totalIdealH = (ROWS * 30) + EXTRA_HEIGHT;
@@ -385,14 +436,12 @@ function resize() {
     const scaleW = availableWidth / totalIdealW;
     const scaleH = availableHeight / totalIdealH;
 
-    // Use the smaller scale to fit, prevent negative or zero scale
     const scale = Math.max(0.1, Math.min(scaleW, scaleH) * 0.95);
 
-    // Center in the AVAILABLE space
     const centerX = offsetX + (availableWidth - (totalIdealW * scale)) / 2;
     const centerY = offsetY + (availableHeight - (totalIdealH * scale)) / 2;
 
-    ctx.setTransform(scale, 0, 0, scale, centerX, centerY);
+    ctx.setTransform(scale * dpr, 0, 0, scale * dpr, centerX * dpr, centerY * dpr);
 }
 
 function drawGrid(player, offsetX) {
@@ -694,7 +743,6 @@ function startGame() {
     document.getElementById('touch-controls').classList.remove('hidden');
 
     // Adjust touch controls for 1P
-    const tc = document.getElementById('touch-controls');
     if (gameMode === '1p') {
         document.body.classList.add('mode-1p');
     } else {
@@ -758,6 +806,7 @@ document.querySelectorAll('#music-select .toggle-btn').forEach(btn => {
 
 document.getElementById('start-game-btn').onclick = startGame;
 
+updateTabletClass();
 setupInputs();
 resize();
 
