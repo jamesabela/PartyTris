@@ -55,7 +55,7 @@ if (coarsePointerQuery.addEventListener) {
 }
 
 // Game State
-let gameMode = '1p';
+let gameMode = '2p';
 let gameDuration = 180; // seconds
 let gameStartTime = 0;
 let gameOver = false;
